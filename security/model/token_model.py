@@ -1,6 +1,6 @@
-from pydantic import BaseModel
-from di import get_settings
-
+from pydantic import BaseModel, Field
+from dependencies import get_settings
+from typing import Optional
 
 config = get_settings()
 
@@ -11,5 +11,7 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    sub: str
-    admin: bool = False
+    # user name or admin email
+    sub: str 
+    # session uuid
+    session: Optional[str] = Field(default=None)

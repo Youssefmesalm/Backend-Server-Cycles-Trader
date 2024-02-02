@@ -1,34 +1,65 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
-from users_management import router as users_management_router
-from admin import router as admin_router
-from security.web import auth_api
-from user.cycles.web import cycles as cycles_api
-from user.me.web import me as me_api
+from admin import admin_router
+from security.web import token_router
+from admin.features.users_management.web import users_management_router
+from user.features.trading.web import trading_router
+from user.features.profile.web import profile_router
+from user.features.event import events_router
+
+from security.dependencies import get_admin
 
 
 app = FastAPI()
 
-app.include_router(
-    users_management_router,
-    prefix="/users",
-    dependencies=[
-        Depends(auth_api.get_admin),
-    ],
-)
+# ----------------- Admin -----------------
 app.include_router(
     admin_router,
     prefix="/admin",
+    tags=["Admin Profile Management"],
     dependencies=[],
 )
-app.include_router(auth_api.router, prefix="/token")
 
-app.include_router(cycles_api.router, prefix="/cycles", tags=["Cycles"])
+# ----------------- Token -----------------
+app.include_router(
+    token_router,
+    prefix="/token",
+)
 
-app.include_router(me_api.router, prefix="/me", tags=["Me"])
+app.include_router(
+    users_management_router,
+    prefix="/users",
+    tags=["Admin Users Management"],
+    dependencies=[
+        Depends(get_admin),
+    ],
+)
 
 
+# ----------------- Trading -----------------
+app.include_router(
+    trading_router,
+    prefix="/cycles",
+    tags=["User Trading Management"],
+)
+
+
+# ----------------- User Profile -----------------
+app.include_router(
+    profile_router,
+    prefix="/me",
+    tags=["User Profile"],
+)
+
+# ----------------- User Events -----------------
+app.include_router(
+    events_router,
+    prefix="/events",
+    tags=["User Events"],
+)
+
+# ----------------- Middleware -----------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
